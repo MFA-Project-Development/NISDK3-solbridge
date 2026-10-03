@@ -21,4 +21,11 @@ public protocol PenFinderDelegate {
     func didFailToConnect(_ peripheral: CBPeripheral,_ error: Error?)
     /// dis connected
     func didDisconnect(_ central: CBCentralManager, _ peripheral: CBPeripheral?,_ error: Error?)
+    /// State restoration: called on the SDK queue before restored peripherals are
+    /// reconnected (`didConnect` follows for each one that is or becomes connected).
+    func willRestore(_ peripherals: [CBPeripheral])
+}
+
+public extension PenFinderDelegate {
+    func willRestore(_ peripherals: [CBPeripheral]) {}
 }

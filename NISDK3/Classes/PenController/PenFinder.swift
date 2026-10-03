@@ -22,10 +22,29 @@ public class PenFinder: NSObject {
     /// Singleton instance
     public static let shared = PenFinder()
     
+    /// State-restoration identifier for the SDK's CBCentralManager.
+    /// Must be set before the first access to `PenFinder.shared` (ideally in
+    /// `application(_:didFinishLaunchingWithOptions:)`), otherwise iOS cannot
+    /// relaunch the app for BLE events after it was terminated in background.
+    public static var restoreIdentifier: String?
+
     /// PenFinderDelegate
-    public var delegate: PenFinderDelegate?
+    /// Restored peripherals that arrived before a delegate was attached are
+    /// delivered as soon as one is set.
+    public var delegate: PenFinderDelegate? {
+        didSet { deliverRestoredIfPossible() }
+    }
     
     private var centralManager: CBCentralManager!
+
+    /// The SDK-owned central. Exposed so apps can `retrievePeripherals`,
+    /// `cancelPeripheralConnection` and read `state` without reflection.
+    public var central: CBCentralManager { return centralManager }
+
+    private let btQueue = DispatchQueue(label: "kr.neolab.penBT")
+    private let restoreLock = NSLock()
+    private var restoredPeripherals: [CBPeripheral] = []
+    private var restoreReady = false
     
     private var timer: Timer?
     
@@ -100,7 +119,59 @@ extension PenFinder: CBCentralManagerDelegate {
     //MARK: - Ignore It -
     /// we start the connection process
     fileprivate func initBluetooth(){
-        centralManager = CBCentralManager(delegate: self, queue: (DispatchQueue(label: "kr.neolab.penBT")), options: [CBCentralManagerOptionShowPowerAlertKey: true])
+        var options: [String: Any] = [CBCentralManagerOptionShowPowerAlertKey: true]
+        if let identifier = PenFinder.restoreIdentifier {
+            options[CBCentralManagerOptionRestoreIdentifierKey] = identifier
+        }
+        centralManager = CBCentralManager(delegate: self, queue: btQueue, options: options)
+    }
+
+    // State restoration: iOS relaunched the app for a BLE event and hands back the
+    // peripherals the previous process had connected or was connecting to.
+    /// :nodoc:
+    public func centralManager(_ central: CBCentralManager, willRestoreState dict: [String: Any]) {
+        let peripherals = dict[CBCentralManagerRestoredStatePeripheralsKey] as? [CBPeripheral] ?? []
+        N.Log("centralManager willRestoreState peripherals: \(peripherals.count)")
+        restoreLock.lock()
+        restoredPeripherals.append(contentsOf: peripherals)
+        restoreLock.unlock()
+        if central.state == .poweredOn { markRestoreReady() }
+    }
+
+    // Commands to a restored peripheral are only valid once the central is powered on,
+    // and the delegate must exist to receive the resulting PenController.
+    private func markRestoreReady() {
+        restoreLock.lock()
+        restoreReady = true
+        restoreLock.unlock()
+        deliverRestoredIfPossible()
+    }
+
+    private func deliverRestoredIfPossible() {
+        restoreLock.lock()
+        guard restoreReady, let delegate = delegate, !restoredPeripherals.isEmpty else {
+            restoreLock.unlock()
+            return
+        }
+        let peripherals = restoredPeripherals
+        restoredPeripherals.removeAll()
+        restoreLock.unlock()
+        let central = centralManager!
+        btQueue.async {
+            delegate.willRestore(peripherals)
+            for peripheral in peripherals {
+                switch peripheral.state {
+                case .connected:
+                    // Rebuild the PenController exactly like a fresh didConnect so the
+                    // service discovery and pen handshake run again in this process.
+                    self.centralManager(central, didConnect: peripheral)
+                case .connecting:
+                    break // the pending connect survives restoration; didConnect follows
+                default:
+                    central.connect(peripheral, options: nil)
+                }
+            }
+        }
     }
         
     // Central Manager State Change
@@ -117,6 +188,7 @@ extension PenFinder: CBCentralManagerDelegate {
             case CBManagerState.poweredOn:
                 bluetoothOn = true
                 N.Log("Bluetooth is currently powered on and available to use.")
+                markRestoreReady()
             default:break
             }
         } else {
@@ -169,7 +241,10 @@ extension PenFinder: CBCentralManagerDelegate {
     }
     
     // Connect Fail
-    private func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) throws {
+    // Was `private ... throws`, which never matched the CBCentralManagerDelegate
+    // selector, so connection failures were silently dropped.
+    /// :nodoc:
+    public func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
         N.Log("Failed to connect to \(peripheral). (\(String(describing: error?.localizedDescription)))")
         self.delegate?.didFailToConnect(peripheral, error)
     }

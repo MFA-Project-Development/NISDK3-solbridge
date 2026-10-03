@@ -1,7 +1,24 @@
 ## iOS SDK3.0
 Neo smartpen SDK(also referred to as ‘Pen SDK’) for iOS. This open-source library allows you to integrate the Neo smartpen - Neo smartpen N2, M1, M1+ and dimo - into your iOS app. 
 
+## Solbridge fork (MFA-Project-Development/NISDK3-solbridge)
+
+Modified copy of NeoSmartpen/iOS-SDK3.0 1.1.5, distributed under the same GPL-3.0 license.
+Tags are `<upstream>-sb.<n>`. Changes from upstream:
+
+- `PenFinder.restoreIdentifier`: set it before the first `PenFinder.shared` access to create the
+  central with `CBCentralManagerOptionRestoreIdentifierKey`. `centralManager(_:willRestoreState:)`
+  hands restored peripherals to `PenFinderDelegate.willRestore(_:)` (default no-op), then rebuilds a
+  `PenController` through `didConnect` for connected ones and re-issues `connect` for disconnected ones.
+- `PenFinder.central`: read-only public access to the SDK central (no reflection needed).
+- `centralManager(_:didFailToConnect:error:)` was `private ... throws`, which never matched the
+  delegate selector; it is now public and non-throwing, so `PenFinderDelegate.didFailToConnect` fires.
+
 ## Release Notes
+
+### 1.1.5-sb.1
+Fork: state restoration, public central, working didFailToConnect (see above).
+
 
 ### 1.1.5
 add exception to setting pen-pressure-sensitivity for FSC sensor type
