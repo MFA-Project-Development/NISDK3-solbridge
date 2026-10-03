@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'NISDK3'
-  s.version          = '1.1.5'
+  s.version          = '1.1.5-sb.1'
   s.summary          = 'iOS SDK for NeoSmartPen'
 
   s.description      = 'NeoSmartpen Controller with Bluetooth'
@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://www.neosmartpen.com'
   s.license          = { :type => 'GPL-3.0', :file => 'LICENSE' }
   s.author           = { 'NeoLAB Convergence Inc.' => 'https://github.com/NeoSmartpen/iOS-SDK3.0' }
-  s.source           = { :git => 'https://github.com/NeoSmartpen/iOS-SDK3.0.git', :tag => s.version.to_s }
+  s.source           = { :git => 'https://github.com/MFA-Project-Development/NISDK3-solbridge.git', :tag => s.version.to_s }
   
   s.swift_version = '5.0'
   s.ios.deployment_target = '10.0'
