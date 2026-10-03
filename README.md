@@ -4,6 +4,7 @@
 > [NeoSmartpen/iOS-SDK3.0](https://github.com/NeoSmartpen/iOS-SDK3.0). Modified sources are published here as GPL-3.0 requires.
 
 Modified copy of NeoSmartpen/iOS-SDK3.0 1.1.5, distributed under the same GPL-3.0 license.
+Modified by MFA-Project-Development on 2026-10-03 (tag `1.1.5-sb.1`).
 Tags are `<upstream>-sb.<n>`. Changes from upstream:
 
 - `PenFinder.restoreIdentifier`: set it before the first `PenFinder.shared` access to create the

@@ -5,6 +5,8 @@
 //  Created by Aram Moon on 2017. 7. 3..
 //  Copyright © 2017년 Aram Moon. All rights reserved.
 //
+//  Modified 2026-10-03 by MFA-Project-Development (NISDK3-solbridge 1.1.5-sb.1):
+//  state restoration, public central, working didFailToConnect. See README.
 
 import Foundation
 import CoreBluetooth
