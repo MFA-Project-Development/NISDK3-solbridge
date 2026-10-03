@@ -1,9 +1,10 @@
-## iOS SDK3.0
-Neo smartpen SDK(also referred to as ‘Pen SDK’) for iOS. This open-source library allows you to integrate the Neo smartpen - Neo smartpen N2, M1, M1+ and dimo - into your iOS app. 
+# NISDK3 — Solbridge fork
 
-## Solbridge fork (MFA-Project-Development/NISDK3-solbridge)
+> **License: GPL-3.0 (unchanged from upstream, see `LICENSE`).** This repository is a public, modified copy of
+> [NeoSmartpen/iOS-SDK3.0](https://github.com/NeoSmartpen/iOS-SDK3.0). Modified sources are published here as GPL-3.0 requires.
 
 Modified copy of NeoSmartpen/iOS-SDK3.0 1.1.5, distributed under the same GPL-3.0 license.
+Modified by MFA-Project-Development on 2026-10-03 (tag `1.1.5-sb.1`).
 Tags are `<upstream>-sb.<n>`. Changes from upstream:
 
 - `PenFinder.restoreIdentifier`: set it before the first `PenFinder.shared` access to create the
@@ -13,6 +14,10 @@ Tags are `<upstream>-sb.<n>`. Changes from upstream:
 - `PenFinder.central`: read-only public access to the SDK central (no reflection needed).
 - `centralManager(_:didFailToConnect:error:)` was `private ... throws`, which never matched the
   delegate selector; it is now public and non-throwing, so `PenFinderDelegate.didFailToConnect` fires.
+
+
+## iOS SDK3.0
+Neo smartpen SDK(also referred to as ‘Pen SDK’) for iOS. This open-source library allows you to integrate the Neo smartpen - Neo smartpen N2, M1, M1+ and dimo - into your iOS app. 
 
 ## Release Notes
 
